@@ -1,0 +1,127 @@
+{
+  "agents": {
+    "defaults": {
+      "workspace": "/home/node/.openclaw/workspace",
+      "model": {
+        "primary": "local-llamacpp//models/your-model.gguf"
+      },
+      "models": {
+        "local-llamacpp//models/your-model.gguf": {
+          "alias": "Local llama.cpp model"
+        }
+      },
+      "experimental": {
+        "localModelLean": true
+      }
+    },
+    "entries": {
+      "main": {}
+    }
+  },
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "controlUi": {
+      "allowedOrigins": [
+        "http://localhost:18789",
+        "http://127.0.0.1:18789"
+      ]
+    }
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "local-llamacpp": {
+        "baseUrl": "http://host.docker.internal:18080/v1",
+        "apiKey": "local-no-key",
+        "api": "openai-completions",
+        "timeoutSeconds": 14400,
+        "models": [
+          {
+            "id": "/models/your-model.gguf",
+            "name": "Local llama.cpp model",
+            "reasoning": false,
+            "input": [
+              "text"
+            ],
+            "cost": {
+              "input": 0,
+              "output": 0,
+              "cacheRead": 0,
+              "cacheWrite": 0
+            },
+            "contextWindow": 16384,
+            "contextTokens": 16384,
+            "maxTokens": 2048,
+            "compat": {
+              "supportsStore": false,
+              "supportsDeveloperRole": false,
+              "supportsReasoningEffort": false,
+              "supportsTemperature": true,
+              "supportsUsageInStreaming": true,
+              "supportsTools": true,
+              "supportsStrictMode": false,
+              "requiresStringContent": true,
+              "maxTokensField": "max_tokens",
+              "toolSchemaProfile": "llamacpp"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "memory": {
+    "search": {
+      "provider": "none"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "memory-wiki": {
+        "enabled": true,
+        "config": {
+          "vaultMode": "bridge",
+          "vault": {
+            "scope": "agent",
+            "renderMode": "native"
+          },
+          "ingest": {
+            "autoCompile": true
+          },
+          "search": {
+            "backend": "shared",
+            "corpus": "wiki"
+          },
+          "context": {
+            "includeCompiledDigestPrompt": false
+          },
+          "render": {
+            "preserveHumanBlocks": true,
+            "createBacklinks": true,
+            "createDashboards": true
+          },
+          "bridge": {
+            "enabled": true,
+            "readMemoryArtifacts": true,
+            "indexDreamReports": true,
+            "indexDailyNotes": true,
+            "indexMemoryRoot": true,
+            "followMemoryEvents": false
+          }
+        }
+      }
+    }
+  },
+  "tools": {
+    "profile": "minimal",
+    "alsoAllow": [
+      "read",
+      "write",
+      "edit",
+      "memory_search",
+      "memory_get",
+      "wiki_search",
+      "wiki_get"
+    ]
+  }
+}

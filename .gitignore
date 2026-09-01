@@ -1,0 +1,69 @@
+# Live OpenClaw data is private and must never enter source control.
+/runtime/
+
+# OpenClaw is fetched separately at the pinned release; do not vendor it.
+/upstream/
+
+# Local deployment configuration and secret-bearing environment files.
+*.env
+.env
+.env.*
+!*.env.example
+!.env.example
+
+# Credentials, authentication material, and SSH/TLS private keys.
+**/auth-profile-secrets/
+**/credentials/
+**/secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# Runtime state, databases, sessions, logs, and caches.
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.log
+*.pid
+*.sock
+*.lock
+*.lock.*
+sessions/
+logs/
+cache/
+
+# Model weights and common local inference artifacts.
+*.gguf
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+pytorch_model*.bin
+
+# Backups, temporary files, and editor/OS artifacts.
+*.bak
+*.backup
+*.before-*
+*.orig
+*.rej
+*.tmp
+*.temp
+*~
+.DS_Store
+.idea/
+.vscode/
+
+# Tooling caches.
+node_modules/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
