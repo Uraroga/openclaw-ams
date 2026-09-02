@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="openclaw-ams-mascot.png" alt="openclaw-ams mascot" width="220">
+</div>
+
 # openclaw-ams
 
 ## Persistent OpenClaw Agent Memory System with Local CPU Inference
