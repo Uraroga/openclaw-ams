@@ -1,10 +1,11 @@
 <div align="center">
-  <img src="openclaw-ams-mascot.png" alt="openclaw-ams mascot" width="220">
+  <img src="openclaw-ams-mascot.png" alt="openclaw-ams mascot" width="280">
+
+  <h1>openclaw-ams</h1>
+  <h3>Persistent OpenClaw Agent Memory System with Local CPU Inference</h3>
 </div>
 
-# openclaw-ams
 
-## Persistent OpenClaw Agent Memory System with Local CPU Inference
 
 `openclaw-ams` is a working experimental foundation for persistent agents,
 memory systems, local inference, tool use, and automation. It is inspired by
