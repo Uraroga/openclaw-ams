@@ -1,4 +1,4 @@
-# Goal 4: native persistent memory architecture
+# Native persistent memory configuration
 
 ## Scope and authority
 
@@ -6,6 +6,20 @@ This project uses the memory architecture shipped with official OpenClaw
 `v2026.8.1` at commit
 `ea806575e6450e4d1efdfc72c19f04be982a1b9b`. It does not add a parallel
 memory engine.
+
+The distinction is:
+
+| Native OpenClaw capability | openclaw-ams choice |
+| --- | --- |
+| Workspace `USER.md`, `MEMORY.md`, daily memory, and `DREAMS.md` surfaces | Three-tier episodic / curated / structured terminology and placement policy |
+| Bundled `memory-core`, SQLite builtin backend, FTS/vector-capable retrieval, pre-compaction flush, and dreaming | FTS-only operation with `memory.search.provider: "none"` |
+| Bundled optional `memory-wiki` | Enabled bridge mode, agent-scoped vault, supported public-artifact ingestion, and provenance rules |
+| Optional compiled wiki prompt contribution | Explicitly disabled with `includeCompiledDigestPrompt: false` |
+| Native container/workspace configuration | Project-owned persistent mounts, private runtime separation, and reproducible checks |
+
+References to “tiers,” promotion rules, and placement below describe project
+policy applied to those native facilities; they do not claim new storage,
+indexing, retrieval, compaction, or dreaming implementations.
 
 Official stable-release documentation reviewed in full:
 

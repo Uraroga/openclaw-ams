@@ -13,6 +13,10 @@ the concepts demonstrated with Felix, but it is an independent project built
 from public OpenClaw functionality and documentation. It is not a finished
 Felix replacement and does not claim frontier-model quality.
 
+This repository does **not** implement a competing memory engine. It pins and
+configures OpenClaw v2026.8.1's native memory stack, adds reproducible
+deployment boundaries, and documents explicit placement and privacy choices.
+
 > **The architecture is operational, but the current practical bottleneck is
 > local inference on the available CPU-only hardware.**
 
@@ -35,7 +39,7 @@ The repository intentionally contains no live agent workspace, personal
 memory, session history, credentials, runtime databases, logs, model weights,
 or vendored OpenClaw checkout.
 
-## Memory architecture
+## Native OpenClaw memory, configured deliberately
 
 The memory design follows the public documentation shipped with OpenClaw
 v2026.8.1. It uses OpenClaw's native mechanisms rather than introducing a
@@ -48,10 +52,17 @@ parallel memory engine:
 | User directives | `runtime/workspace/USER.md` | Stable preferences and active user/project guidance, kept separate from general memory |
 | Structured knowledge | `runtime/state/wiki/<agent>/` | Source-backed claims, evidence, entities, relationships, syntheses, and provenance |
 
-Bundled `memory-core` owns native retrieval, FTS/vector indexing,
-pre-compaction memory flush, promotion, consolidation, and dreaming.
-`memory-wiki` adds structured, provenance-aware knowledge while retaining the
-workspace Markdown files as canonical memory surfaces.
+The ownership boundary is intentional:
+
+| OpenClaw v2026.8.1 provides | This project configures or documents |
+| --- | --- |
+| `USER.md`, `MEMORY.md`, daily memory files, and `DREAMS.md` | Episodic / curated / structured terminology and strict placement rules |
+| Bundled `memory-core`, SQLite-backed memory, FTS/vector-capable retrieval, pre-compaction flush, and dreaming | Credential-free FTS-only search with `memory.search.provider: "none"` |
+| Bundled optional `memory-wiki` | Enabled agent-scoped bridge mode, provenance rules, and no compiled digest in every prompt |
+| Native workspace and plugin lifecycle | Docker persistence, private runtime separation, and reproducible validation |
+
+The three tiers are therefore a project organization policy over public
+OpenClaw surfaces—not a new storage or retrieval implementation.
 
 The design emphasizes:
 
@@ -90,6 +101,20 @@ CPU-only model through the separate
 endpoint is bound to localhost on Argo3 and is reachable from the OpenClaw
 container only through a host-verified SSH tunnel.
 
+Argo3 is an HP Elite 8300 SFF with two physical Ivy Bridge cores / four logical
+threads, 32 GB DDR3, AVX/F16C, no AVX2/FMA, and no GPU inference. Atlas5 owns
+OpenClaw, its UI, persistent agent runtime, memory, and telemetry. The route is:
+
+```text
+OpenClaw container on Atlas5
+  -> host.docker.internal on the Atlas5 Docker bridge
+  -> host-verified SSH local forward
+  -> Argo3 127.0.0.1:8080
+  -> Argo Forge managed llama-server
+```
+
+Argo3 port 8080 is not intentionally exposed to the LAN.
+
 The older i3-3240 is deliberately used for inference because it runs
 considerably cooler during sustained workloads. It has sustained approximately
 200% CPU utilization for many hours, including overnight work. The faster
@@ -97,10 +122,36 @@ i5-4590 has shown excessive temperatures and kernel panics during heavy,
 long-running inference. Stability and thermal behavior matter more here than
 short benchmark speed.
 
-Experiments documented in this repository cover models in roughly the 4B, 8B,
-9B, 27B, and 30B range. These are exploratory measurements on specific old
-hardware, not universal rankings. See
-[docs/local-model-integration.md](docs/local-model-integration.md).
+The current validated integration uses Qwen3 14B Q2_K, context 16,384, two
+generation threads, two batch threads, CPU-only mmap, reasoning off, one slot,
+`n_batch=256`, and `n_ubatch=128`.
+
+## What the slow-provider research found
+
+Privacy-safe metadata instrumentation separated prompt construction, provider
+wall time, llama.cpp processing, and queue/slot lifecycle without logging
+prompt, memory, tool, or response contents. It showed that one apparently
+31-minute successful request contained about 10 minutes 57 seconds of actual
+llama.cpp work and about 20 minutes 50 seconds waiting behind a cancelled slot.
+
+On the pinned llama.cpp Ivy Bridge runtime, cancellation is serviced after a
+logical decode batch rather than an internal physical microbatch. A controlled
+2,100-token sweep found sub-percent prompt-throughput differences—treated as
+noise—while reducing batch size materially improved cancellation:
+
+| `n_batch / n_ubatch` | Prompt tok/s | Cancel-to-release |
+| ---: | ---: | ---: |
+| 2048 / 512 | 1.5206 | 1,271.790 s (`HISTORICAL_GOAL_5J`) |
+| 1024 / 512 | 1.5132 | 651.869 s |
+| 512 / 256 | 1.5216 | 322.765 s |
+| 256 / 128 | 1.5235 | 159.462 s |
+
+The adopted 256/128 pair improved cancellation latency by 87.462% against the
+historical 2,048 baseline with no measured prompt-throughput penalty. This is
+evidence for one model, runtime, prompt, and old CPU—not a universal llama.cpp
+setting. See [the complete local-inference record](docs/local-model-integration.md),
+[telemetry semantics](docs/prompt-telemetry.md), and the
+[machine-readable sweep](telemetry/results/goal5k-batch-sweep.json).
 
 ## Pinned OpenClaw release
 
@@ -152,6 +203,11 @@ overwrite an existing live configuration blindly.
 For the complete setup, memory initialization, local-model options, tunnel
 configuration, and security notes, read [docs/setup.md](docs/setup.md).
 
+The local inference host is optional. Developers reproducing the reference
+split should also read the separate
+[Argo Forge repository](https://github.com/Uraroga/argo-forge) and verify their
+own CPU flags, GGUF license, context, batch sizes, and port bindings.
+
 ## Security boundary
 
 Everything under `runtime/` is local and private. In particular, never commit:
@@ -174,9 +230,19 @@ openclaw-ams/
 ├── config/                         # sanitized examples only
 ├── deployment/                     # project-owned wrappers and safe templates
 ├── docs/                           # architecture, setup, and experiment records
+├── telemetry/                      # metadata-only plugin, parser, tests, results
 ├── runtime/                        # created locally; entirely ignored/private
 └── upstream/                       # separately cloned OpenClaw; entirely ignored
 ```
+
+Key reading:
+
+- [Native memory configuration](docs/memory-architecture.md)
+- [Stable runtime](docs/runtime.md)
+- [Reproducible setup](docs/setup.md)
+- [Local CPU inference research](docs/local-model-integration.md)
+- [Privacy-safe prompt telemetry](docs/prompt-telemetry.md)
+- [OpenClaw provenance](docs/upstream.md)
 
 ## Scope and limitations
 
