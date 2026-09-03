@@ -40,8 +40,20 @@ export OPENCLAW_CONFIG_DIR="$project_root/runtime/state"
 export OPENCLAW_WORKSPACE_DIR="$project_root/runtime/workspace"
 export OPENCLAW_AUTH_PROFILE_SECRET_DIR="$project_root/runtime/auth-profile-secrets"
 
+compose_files=(-f "$upstream_dir/docker-compose.yml")
+telemetry_marker="$project_root/runtime/state/.openclaw-ams-prompt-telemetry.enabled"
+telemetry_setting="${OPENCLAW_AMS_PROMPT_TELEMETRY:-}"
+if [[ -z "$telemetry_setting" && -f "$telemetry_marker" ]]; then
+  telemetry_setting="1"
+fi
+if [[ "$telemetry_setting" =~ ^(1|true|yes|on)$ ]]; then
+  export OPENCLAW_AMS_PROMPT_TELEMETRY="1"
+  export OPENCLAW_AMS_PROJECT_ROOT="$project_root"
+  compose_files+=(-f "$deployment_dir/openclaw-telemetry.compose.yml")
+fi
+
 exec docker compose \
   --env-file "$env_file" \
   --project-directory "$upstream_dir" \
-  -f "$upstream_dir/docker-compose.yml" \
+  "${compose_files[@]}" \
   "$@"

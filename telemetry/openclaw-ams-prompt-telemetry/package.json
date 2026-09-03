@@ -1,0 +1,11 @@
+{
+  "name": "openclaw-ams-prompt-telemetry",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "openclaw": {
+    "extensions": [
+      "./index.cjs"
+    ]
+  }
+}

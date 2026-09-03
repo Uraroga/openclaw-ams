@@ -1,0 +1,6 @@
+services:
+  openclaw-gateway:
+    environment:
+      OPENCLAW_AMS_PROMPT_TELEMETRY: "${OPENCLAW_AMS_PROMPT_TELEMETRY:-0}"
+    volumes:
+      - "${OPENCLAW_AMS_PROJECT_ROOT:?OPENCLAW_AMS_PROJECT_ROOT is required}/telemetry/openclaw-ams-prompt-telemetry:/home/node/.openclaw/extensions/openclaw-ams-prompt-telemetry:ro"

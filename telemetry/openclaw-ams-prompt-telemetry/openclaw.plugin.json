@@ -1,0 +1,13 @@
+{
+  "id": "openclaw-ams-prompt-telemetry",
+  "name": "OpenClaw AMS prompt telemetry",
+  "description": "Metadata-only prompt assembly and provider timing telemetry for local CPU experiments.",
+  "activation": {
+    "onStartup": false
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {}
+  }
+}
